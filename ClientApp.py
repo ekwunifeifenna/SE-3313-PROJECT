@@ -3,7 +3,13 @@ from threading import Thread
 import tkinter
 from datetime import datetime
 import tkinter.filedialog
+import tkinter.ttk as ttk
 BUFSIZ = 4096
+
+# Define your color scheme
+background_color = "#ffffff"  # Dracula theme background color
+foreground_color = "#000000"  # Dracula theme foreground color
+button_color = "#2596be" # Dracula theme button color
 
 class AutocompleteEntry(tkinter.Entry):
     def __init__(self, autocomplete_list, *args, **kwargs):
@@ -79,16 +85,8 @@ def upload_file():
                 if not file_data:
                     break
                 client_socket.send(b'FILE' + filename.encode() + b'\0' + file_data)
+                # client_socket.send(b'FILE' + filename.encode() + b'\0')
 
-
-# def receive(): #function to decode received messages
-#     while True:
-#         try:
-#             msg = client_socket.recv(BUFFER_SIZE).decode("utf8")
-#             msg_list.insert(tkinter.END, msg)
-#             msg_list.see(tkinter.END)
-#         except OSError:
-#             break
 
 def receive():
     while True:
@@ -109,19 +107,9 @@ def receive():
         except OSError:  # Possibly client has left the chat.
             break
 
-def send(event=None): #function to write the message to the socket
-    # msg = my_msg.get()
-    # my_msg.set("")      #clears text field for every message sent
-    # global current_room
-    # if msg == "{quit}":
-    #     client_socket.send(bytes(my_username.get() + " has closed OS Messenger App!", "utf8"))
-    #     client_socket.close()
-    #     top.quit()
-    #     return
-    # client_socket.send(bytes(my_username.get() + ": " + msg, "utf8"))
-    
+def send(event=None): 
     msg = my_msg.get()
-    my_msg.set("")      #clears text field for every message sent
+    my_msg.set("")      
     global current_room
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     if msg == "{quit}":
@@ -132,10 +120,10 @@ def send(event=None): #function to write the message to the socket
     client_socket.send(bytes(f'[{timestamp}] {my_username.get()}: {msg}', "utf8"))
 
 def on_closing(event=None):
-    my_msg.set("{quit}") #send server quit message
+    my_msg.set("{quit}") 
     send()
 
-def change_room(): #function to change the chat room
+def change_room(): 
     global current_room
     current_room = ((chatRoomSelected.get()).split(' '))[2]
     client_socket.send(bytes("/" + current_room, "utf8"))
@@ -150,69 +138,107 @@ current_room = 0
 top = tkinter.Tk()
 top.title("Client App")
 
-messages_frame = tkinter.Frame(top) #frame to append to 
+# Apply the color scheme to your application
+top.configure(bg=background_color)
+
+messages_frame = tkinter.Frame(top) 
 my_msg = tkinter.StringVar()  
 my_msg.set("")
 my_username = tkinter.StringVar()
 my_username.set("")
 
-scrollbar = tkinter.Scrollbar(messages_frame)  #scroll bar to see through previous messages.
-msg_list = tkinter.Listbox(messages_frame, height=30, width=100, yscrollcommand=scrollbar.set, bg="#D0F9FA")
+scrollbar = tkinter.Scrollbar(messages_frame)  
+msg_list = tkinter.Listbox(messages_frame, height=30, width=100, yscrollcommand=scrollbar.set, bg=background_color, fg=foreground_color)
 scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
 msg_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
 msg_list.pack()
-messages_frame.pack() #append to frame
+messages_frame.pack() 
 
-username_label = tkinter.Label(top, text="Enter username: ")
+username_label = tkinter.Label(top, text="Enter username: ", bg=background_color, fg=foreground_color)
 username_label.pack()
-username_field = tkinter.Entry(top, textvariable=my_username)
-username_field.pack() #append to frame
+username_field = tkinter.Entry(top, textvariable=my_username, bg=background_color, fg=foreground_color)
+username_field.pack() 
 
-# message_label = tkinter.Label(top, text="Enter message: ")
-# message_label.pack()
-# entry_field = tkinter.Entry(top, textvariable=my_msg, width=50)
-# entry_field.bind("<Return>", send)
-# entry_field.pack()
-# send_button = tkinter.Button(top, text="Send", command=send, bg="#FAF9D0")
-# send_button.pack() #append to frame
-
-message_label = tkinter.Label(top, text="Enter message: ")
+message_label = tkinter.Label(top, text="Enter message: ", bg=background_color, fg=foreground_color)
 message_label.pack()
-autocomplete_list = ['Hello', 'How are you?', 'Goodbye']  # Add your autocomplete options here
+
+autocomplete_list = [
+    'Hello',
+    'How are you?',
+    'Goodbye',
+    'Thank you',
+    'Please',
+    'Yes',
+    'No',
+    'Maybe',
+    'Good morning',
+    'Good night',
+    'See you later',
+    'What is your name?',
+    'How old are you?',
+    'What time is it?',
+    'Where are you from?',
+    'Nice to meet you',
+    'Have a great day',
+    'Welcome back',
+    'Congratulations',
+    'Happy birthday',
+    'I agree with you',
+    'Could you please repeat that?',
+    'I didn’t understand that',
+    'Could you please help me?',
+    'I’m sorry for the inconvenience',
+    'I appreciate your help',
+    'I’m looking forward to our next meeting',
+    'Take care',
+    'Have a safe journey',
+    'Good luck',
+    'Wishing you all the best'
+]
 entry_field = AutocompleteEntry(autocomplete_list, top, textvariable=my_msg, width=50)
 entry_field.bind("<Return>", send)
 entry_field.pack()
-send_button = tkinter.Button(top, text="Send", command=send, bg="#FAF9D0")
-send_button.pack() #append to frame
-
+send_button = tkinter.Button(top, text="Send", command=send, bg=button_color, fg=foreground_color)
+send_button.pack() 
 
 top.protocol("WM_DELETE_WINDOW", on_closing)
 
-HOST = "127.0.0.1" #socket connection with parameters.
+HOST = "127.0.0.1" 
 PORT = 3005
 BUFFER_SIZE = 1024
 ADDR = (HOST, PORT)
 
 client_socket = socket(AF_INET, SOCK_STREAM)
-client_socket.connect(ADDR) #connect to socket
+client_socket.connect(ADDR) 
 
-first_msg = client_socket.recv(BUFFER_SIZE).decode("utf8") #server response of number of rooms available and generate drop down list.
+first_msg = client_socket.recv(BUFFER_SIZE).decode("utf8") 
 number_of_rooms = int(first_msg)
 chatRoomSelected = tkinter.StringVar(top)
 chatRoomSelected.set("List Of Chat Rooms")
 rooms_list = []
-for i in range(number_of_rooms): #list out rooms defined by server
+for i in range(number_of_rooms): 
     rooms_list.append("Chat Room " + str(i + 1))
 
-chat_rooms = tkinter.OptionMenu(top, chatRoomSelected, *rooms_list)
-chat_rooms.pack()
-change_button = tkinter.Button(top, text="Change Room", command=change_room, bg="#FAF9D0")
-change_button.pack() #append to frame
+# Create a new frame for the chat room selection and the change room button
+top_frame = tkinter.Frame(top)
+top_frame.pack(side='top', anchor='ne')
 
-upload_button = tkinter.Button(top, text="Upload File", command=upload_file, bg="#FAF9D0")
-upload_button.pack() #append to frame
+# Use a ttk Combobox instead of an OptionMenu
+chat_rooms = ttk.Combobox(top_frame, textvariable=chatRoomSelected, values=rooms_list)
+chat_rooms.pack(side='top')
+
+# You can set the colors for the Combobox like this:
+style = ttk.Style()
+style.theme_use('default')
+style.configure("TCombobox", fieldbackground=button_color, foreground=foreground_color)
+
+change_button = tkinter.Button(top_frame, text="Change Room", command=change_room, bg=button_color, fg=foreground_color)
+change_button.pack(side='top')
+
+upload_button = tkinter.Button(top, text="Upload File", command=upload_file, bg=button_color, fg=foreground_color)
+upload_button.pack() 
 
 receive_thread = Thread(target=receive)
 receive_thread.start()
-top.resizable(width=False, height=False) #client cannot resize window
+top.resizable(width=False, height=False) 
 tkinter.mainloop()
