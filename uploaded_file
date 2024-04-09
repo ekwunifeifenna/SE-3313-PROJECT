@@ -1,0 +1,17 @@
+#ifndef SOCKET_H
+#define SOCKET_H
+#include <vector>
+#include <string>
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+
+#include "Blockable.h"
+namespace Sync{
+	
+class ByteArray
+{
+public:
+    std::vector<cha

@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "python": "^0.0.4",
+    "tkinter": "^0.0.2-security"
+  }
+}
