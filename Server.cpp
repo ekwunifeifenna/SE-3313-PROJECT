@@ -64,6 +64,21 @@ public:
 					break; // if the socket is closed on the client side, terminate this socket thread.
 
 				string recv = data.ToString();
+
+				if (recv == "TYPING")
+				{
+					// Broadcast "is typing" notification to all other clients in the same room
+					for (int i = 0; i < socketThreadsHolder.size(); i++)
+					{
+						SocketThread *clientSocketThread = socketThreadsHolder[i];
+						if (clientSocketThread->GetChatRoom() == chatRoomNum && clientSocketThread != this)
+						{
+							Socket &clientSocket = clientSocketThread->GetSocket();
+							ByteArray sendBa("Someone is typing...");
+							clientSocket.Write(sendBa);
+						}
+					}
+				}
 				if (recv == "shutdown\n")
 				{
 					clientBlock.Wait(); // signal the semaphore to prevent other threads accesssing the socket
@@ -84,7 +99,6 @@ public:
 					continue;
 				}
 
-				
 				if (recv.substr(0, 4) == "FILE")
 				{ // Check if the message is a file upload
 					size_t pos = recv.find('\0', 4);

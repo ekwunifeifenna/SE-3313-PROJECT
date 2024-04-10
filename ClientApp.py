@@ -48,6 +48,8 @@ class AutocompleteEntry(tkinter.Entry):
                     if self.lb_up:
                         self.lb.destroy()
                         self.lb_up = False
+
+    
         
 
     def selection(self, event):
@@ -87,8 +89,12 @@ def upload_file():
                 client_socket.send(b'FILE' + filename.encode() + b'\0' + file_data)
                 # client_socket.send(b'FILE' + filename.encode() + b'\0')
 
+def on_typing(event=None):
+    """Function to execute when the user starts typing."""
+    client_socket.send(bytes("TYPING", "utf8"))
 
 def receive():
+    """Handles receiving of messages."""
     while True:
         try:
             msg = client_socket.recv(BUFSIZ)
@@ -102,6 +108,9 @@ def receive():
                     msg_list.insert(tkinter.END, f"Received file chunk: {filename}")
                 else:
                     msg_list.insert(tkinter.END, msg.decode("utf8"))
+            elif msg.endswith(b"is typing..."):
+                # Display the "is typing" notification
+                msg_list.insert(tkinter.END, msg.decode("utf8"))
             else:
                 msg_list.insert(tkinter.END, msg.decode("utf8"))
         except OSError:  # Possibly client has left the chat.
@@ -197,6 +206,7 @@ autocomplete_list = [
 ]
 entry_field = AutocompleteEntry(autocomplete_list, top, textvariable=my_msg, width=50)
 entry_field.bind("<Return>", send)
+entry_field.bind("<Key>", on_typing)  # Bind the 'on_typing' function to the '<Key>' event
 entry_field.pack()
 send_button = tkinter.Button(top, text="Send", command=send, bg=button_color, fg=foreground_color)
 send_button.pack() 
