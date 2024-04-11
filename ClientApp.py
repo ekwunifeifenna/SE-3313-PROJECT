@@ -11,6 +11,8 @@ background_color = "#ffffff"  # Dracula theme background color
 foreground_color = "#000000"  # Dracula theme foreground color
 button_color = "#2596be" # Dracula theme button color
 
+is_typing_sent = False
+
 class AutocompleteEntry(tkinter.Entry):
     def __init__(self, autocomplete_list, *args, **kwargs):
         tkinter.Entry.__init__(self, *args, **kwargs)
@@ -78,6 +80,13 @@ class AutocompleteEntry(tkinter.Entry):
                     self.lb.selection_set(current_selection[0] + 1)
                     self.lb.see(current_selection[0] + 1)
 
+def on_typing(event=None):
+    """Function to execute when the user starts typing."""
+    global is_typing_sent
+    if not is_typing_sent:
+        client_socket.send(bytes("TYPING", "utf8"))
+        is_typing_sent = True
+
 def upload_file():
     filename = tkinter.filedialog.askopenfilename()
     if filename:
@@ -89,9 +98,9 @@ def upload_file():
                 client_socket.send(b'FILE' + filename.encode() + b'\0' + file_data)
                 # client_socket.send(b'FILE' + filename.encode() + b'\0')
 
-def on_typing(event=None):
-    """Function to execute when the user starts typing."""
-    client_socket.send(bytes("TYPING", "utf8"))
+# def on_typing(event=None):
+#     """Function to execute when the user starts typing."""
+#     client_socket.send(bytes("TYPING", "utf8"))
 
 def receive():
     """Handles receiving of messages."""
@@ -117,6 +126,8 @@ def receive():
             break
 
 def send(event=None): 
+    """Handles sending of messages."""
+    global is_typing_sent
     msg = my_msg.get()
     my_msg.set("")      
     global current_room
@@ -127,6 +138,7 @@ def send(event=None):
         top.quit()
         return
     client_socket.send(bytes(f'[{timestamp}] {my_username.get()}: {msg}', "utf8"))
+    is_typing_sent = False
 
 def on_closing(event=None):
     my_msg.set("{quit}") 
